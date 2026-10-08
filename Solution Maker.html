@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solution Maker – Maths • Physics • Chemistry</title>
+<style>
+:root{--bg:#f5f2ec;--card:#fffdf9;--ink:#1d2330;--mut:#6b7280;--ln:#e3ddd0;--field:#faf7f1;--acc:#8a6a2f;--sel:#efe6d2;--ans:#f1ece0;--M:#3d5a99;--P:#a07a2c;--C:#3f7a5f;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#171b23;--ink:#ece8df;--mut:#939aa8;--ln:#272d39;--field:#1d222c;--acc:#d4b374;--sel:#262a33;--ans:#12161d;--M:#8fb0f0;--P:#d4b374;--C:#8cc4a4;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#171b23;--ink:#ece8df;--mut:#939aa8;--ln:#272d39;--field:#1d222c;--acc:#d4b374;--sel:#262a33;--ans:#12161d;--M:#8fb0f0;--P:#d4b374;--C:#8cc4a4;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;box-shadow:0 8px 30px rgba(20,20,30,.07)}
+.wrap{max-width:1150px;margin:0 auto;padding:26px 18px 40px}
+h1{margin:0 0 4px;font:600 clamp(24px,4vw,34px) Georgia,"Times New Roman",serif;letter-spacing:.2px}
+h1::after{content:"";display:block;width:54px;height:3px;background:var(--acc);margin-top:8px;border-radius:2px}
+.sub{color:var(--mut);margin:12px 0 20px}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
+.side{padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tab{flex:1;border:1px solid var(--ln);background:var(--field);color:var(--ink);padding:7px 6px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}
+.tab.on{border-color:var(--acc);background:var(--sel);color:var(--acc);font-weight:600}
+input,select{width:100%;background:var(--field);border:1px solid var(--ln);color:var(--ink);padding:10px 12px;border-radius:10px;font:inherit;outline:none}
+input:focus,select:focus{border-color:var(--acc)}
+.list{margin-top:10px;max-height:62vh;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.it{display:flex;gap:9px;align-items:center;text-align:left;background:transparent;border:1px solid transparent;color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer;font:inherit;font-size:14px}
+.it:hover{background:var(--field)}.it.on{background:var(--sel);border-color:var(--acc)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.M{background:var(--M)}.P{background:var(--P)}.C{background:var(--C)}
+.main{padding:24px}
+h2{margin:0;font:600 24px Georgia,serif}
+.eq{font-size:clamp(19px,3.2vw,26px);font-weight:600;margin:10px 0 18px;padding:12px 16px;border-radius:12px;background:var(--field);border:1px solid var(--ln);overflow-x:auto;white-space:nowrap}
+.lbl{font-size:12px;color:var(--mut);margin:0 0 5px;text-transform:uppercase;letter-spacing:.07em}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:14px 0}
+.ans{margin-top:16px;padding:18px;border-radius:14px;background:var(--ans);border:1px solid var(--ln)}
+.big{font-size:clamp(22px,4vw,32px);font-weight:700;color:var(--acc);word-break:break-word}
+.step{margin:8px 0;opacity:.9;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;overflow-x:auto;white-space:pre-wrap}
+.step b{font-family:system-ui,sans-serif;color:var(--ink)}
+.warn{color:#b4540a}.hint{color:var(--mut);font-size:13px;margin-top:10px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.list{max-height:240px}}
+</style></head><body>
+<div class="wrap">
+<h1>Solution Maker</h1>
+<p class="sub">Pick a formula, choose what to find, enter the given values – get the answer with steps. Maths • Physics • Chemistry.</p>
+<div class="grid">
+<div class="side card"><div class="tabs" id="tabs"></div><input id="q" placeholder="Search formula…" autocomplete="off"><div class="list" id="list"></div></div>
+<div class="main card" id="main"></div>
+</div></div>
+<script>
+const D=[];
+const F=(s,n,eq,v,sol)=>D.push({s,n,eq,v:v.split('|').map(x=>{const i=x.indexOf(':');return i<0?{k:x,l:x}:{k:x.slice(0,i),l:x.slice(i+1)}}),sol:sol.split(';').map(x=>{const i=x.indexOf('=');return{k:x.slice(0,i),e:x.slice(i+1)}})});
+// ---------- MATHS ----------
+F('M','Quadratic equation','ax² + bx + c = 0','a:Coefficient a|b:Coefficient b|c:Constant c','x=quad(a,b,c)');
+F('M','Area of circle','A = πr²','r:Radius r|A:Area A','A=PI*r*r;r=sqrt(A/PI)');
+F('M','Circumference of circle','C = 2πr','r:Radius r|C:Circumference C','C=2*PI*r;r=C/(2*PI)');
+F('M','Area of triangle','A = ½ × b × h','b:Base b|h:Height h|A:Area A','A=0.5*b*h;b=2*A/h;h=2*A/b');
+F('M','Pythagoras theorem','a² + b² = c²','a:Side a|b:Side b|c:Hypotenuse c','c=sqrt(a*a+b*b);a=sqrt(c*c-b*b);b=sqrt(c*c-a*a)');
+F('M','Volume of sphere','V = (4/3)πr³','r:Radius r|V:Volume V','V=4/3*PI*r*r*r;r=cbrt(3*V/(4*PI))');
+F('M','Surface area of sphere','S = 4πr²','r:Radius r|S:Surface area S','S=4*PI*r*r;r=sqrt(S/(4*PI))');
+F('M','Volume of cylinder','V = πr²h','r:Radius r|h:Height h|V:Volume V','V=PI*r*r*h;h=V/(PI*r*r);r=sqrt(V/(PI*h))');
+F('M','Volume of cone','V = ⅓πr²h','r:Radius r|h:Height h|V:Volume V','V=PI*r*r*h/3;h=3*V/(PI*r*r);r=sqrt(3*V/(PI*h))');
+F('M','AP – nth term','aₙ = a + (n − 1)d','a1:First term a|d:Common difference d|n:Term number n|an:nth term aₙ','an=a1+(n-1)*d;a1=an-(n-1)*d;d=(an-a1)/(n-1);n=(an-a1)/d+1');
+F('M','AP – sum of n terms','Sₙ = n/2 · [2a + (n − 1)d]','a1:First term a|d:Common difference d|n:Number of terms n|S:Sum Sₙ','S=n/2*(2*a1+(n-1)*d)');
+F('M','GP – nth term','aₙ = a · rⁿ⁻¹','a1:First term a|r:Common ratio r|n:Term number n|an:nth term aₙ','an=a1*pow(r,n-1);a1=an/pow(r,n-1);r=pow(an/a1,1/(n-1))');
+F('M','GP – sum of n terms','Sₙ = a(rⁿ − 1)/(r − 1)','a1:First term a|r:Common ratio r|n:Number of terms n|S:Sum Sₙ','S=a1*(pow(r,n)-1)/(r-1)');
+F('M','Compound interest','A = P(1 + r/100)ᵗ','P:Principal P|r:Rate r (% per period)|t:Periods t|A:Amount A','A=P*pow(1+r/100,t);P=A/pow(1+r/100,t);r=(pow(A/P,1/t)-1)*100;t=log(A/P)/log(1+r/100)');
+F('M','Simple interest','SI = P·R·T / 100','P:Principal P|R:Rate R (%)|T:Time T (years)|SI:Simple interest SI','SI=P*R*T/100;P=SI*100/(R*T);R=SI*100/(P*T);T=SI*100/(P*R)');
+F('M','Distance between two points','d = √[(x₂−x₁)² + (y₂−y₁)²]','x1:x₁|y1:y₁|x2:x₂|y2:y₂|d:Distance d','d=sqrt((x2-x1)**2+(y2-y1)**2)');
+F('M','Slope of a line','m = (y₂ − y₁)/(x₂ − x₁)','x1:x₁|y1:y₁|x2:x₂|y2:y₂|m:Slope m','m=(y2-y1)/(x2-x1)');
+F('M','Combination nCr','ⁿCᵣ = n! / [r!(n − r)!]','n:n|r:r|C:Value of nCr','C=fact(n)/(fact(r)*fact(n-r))');
+F('M','Permutation nPr','ⁿPᵣ = n! / (n − r)!','n:n|r:r|P:Value of nPr','P=fact(n)/fact(n-r)');
+F('M','Derivative of axⁿ','d/dx (axⁿ) = a·n·xⁿ⁻¹','a:Coefficient a|n:Power n|x:Value of x|D:Derivative value','D=a*n*pow(x,n-1)');
+F('M','Right triangle (trigonometry)','opposite = hyp·sin θ ;  adjacent = hyp·cos θ','hyp:Hypotenuse|th:Angle θ (degrees)|opp:Opposite side|adj:Adjacent side','opp=hyp*sind(th);adj=hyp*cosd(th);th=asind(opp/hyp);hyp=opp/sind(th)');
+// ---------- PHYSICS ----------
+F('P','1st equation of motion','v = u + at','u:Initial velocity u (m/s)|v:Final velocity v (m/s)|a:Acceleration a (m/s²)|t:Time t (s)','v=u+a*t;u=v-a*t;a=(v-u)/t;t=(v-u)/a');
+F('P','2nd equation of motion','s = ut + ½at²','u:Initial velocity u (m/s)|s:Displacement s (m)|a:Acceleration a (m/s²)|t:Time t (s)','s=u*t+0.5*a*t*t;u=s/t-0.5*a*t;a=2*(s-u*t)/(t*t)');
+F('P','3rd equation of motion','v² = u² + 2as','u:Initial velocity u (m/s)|v:Final velocity v (m/s)|a:Acceleration a (m/s²)|s:Displacement s (m)','v=sqrt(u*u+2*a*s);u=sqrt(v*v-2*a*s);a=(v*v-u*u)/(2*s);s=(v*v-u*u)/(2*a)');
+F('P',"Newton's 2nd law",'F = m·a','F:Force F (N)|m:Mass m (kg)|a:Acceleration a (m/s²)','F=m*a;m=F/a;a=F/m');
+F('P','Weight','W = m·g   (g = 9.81 m/s²)','W:Weight W (N)|m:Mass m (kg)','W=m*g0;m=W/g0');
+F('P','Kinetic energy','KE = ½mv²','KE:Kinetic energy KE (J)|m:Mass m (kg)|v:Velocity v (m/s)','KE=0.5*m*v*v;m=2*KE/(v*v);v=sqrt(2*KE/m)');
+F('P','Potential energy','PE = m·g·h','PE:Potential energy PE (J)|m:Mass m (kg)|h:Height h (m)','PE=m*g0*h;m=PE/(g0*h);h=PE/(m*g0)');
+F('P','Work done','W = F·d·cos θ','W:Work W (J)|F:Force F (N)|d:Displacement d (m)|th:Angle θ (degrees)','W=F*d*cosd(th);F=W/(d*cosd(th));d=W/(F*cosd(th))');
+F('P','Mechanical power','P = W / t','P:Power P (W)|W:Work W (J)|t:Time t (s)','P=W/t;W=P*t;t=W/P');
+F('P','Linear momentum','p = m·v','p:Momentum p (kg·m/s)|m:Mass m (kg)|v:Velocity v (m/s)','p=m*v;m=p/v;v=p/m');
+F('P',"Ohm's law",'V = I·R','V:Voltage V (V)|I:Current I (A)|R:Resistance R (Ω)','V=I*R;I=V/R;R=V/I');
+F('P','Electrical power','P = V·I','P:Power P (W)|V:Voltage V (V)|I:Current I (A)','P=V*I;V=P/I;I=P/V');
+F('P','Resistors in parallel (2)','1/Req = 1/R₁ + 1/R₂','R1:R₁ (Ω)|R2:R₂ (Ω)|Req:Equivalent Req (Ω)','Req=R1*R2/(R1+R2);R1=Req*R2/(R2-Req);R2=Req*R1/(R1-Req)');
+F('P',"Coulomb's law",'F = k·q₁q₂ / r²','q1:Charge q₁ (C)|q2:Charge q₂ (C)|r:Distance r (m)|F:Force F (N)','F=kc*q1*q2/(r*r);r=sqrt(kc*q1*q2/F);q1=F*r*r/(kc*q2)');
+F('P','Universal gravitation','F = G·m₁m₂ / r²','m1:Mass m₁ (kg)|m2:Mass m₂ (kg)|r:Distance r (m)|F:Force F (N)','F=Gc*m1*m2/(r*r);r=sqrt(Gc*m1*m2/F);m1=F*r*r/(Gc*m2)');
+F('P','Density','ρ = m / V','rho:Density ρ (kg/m³)|m:Mass m (kg)|V:Volume V (m³)','rho=m/V;m=rho*V;V=m/rho');
+F('P','Pressure','P = F / A','P:Pressure P (Pa)|F:Force F (N)|A:Area A (m²)','P=F/A;F=P*A;A=F/P');
+F('P','Projectile – range','R = u² sin 2θ / g','u:Launch speed u (m/s)|th:Angle θ (degrees)|R:Range R (m)','R=u*u*sind(2*th)/g0;u=sqrt(R*g0/sind(2*th))');
+F('P','Projectile – max height','H = u² sin²θ / 2g','u:Launch speed u (m/s)|th:Angle θ (degrees)|H:Max height H (m)','H=u*u*sind(th)**2/(2*g0);u=sqrt(2*g0*H)/sind(th)');
+F('P','Projectile – time of flight','T = 2u sin θ / g','u:Launch speed u (m/s)|th:Angle θ (degrees)|T:Time of flight T (s)','T=2*u*sind(th)/g0;u=T*g0/(2*sind(th))');
+F('P','Wave speed','v = f·λ','v:Speed v (m/s)|f:Frequency f (Hz)|lam:Wavelength λ (m)','v=f*lam;f=v/lam;lam=v/f');
+F('P','Frequency & time period','f = 1 / T','f:Frequency f (Hz)|T:Time period T (s)','f=1/T;T=1/f');
+F('P','Lens / mirror formula','1/v − 1/u = 1/f  (Cartesian sign convention)','f:Focal length f (cm)|v:Image distance v (cm)|u:Object distance u (cm)','f=1/(1/v-1/u);v=1/(1/f+1/u);u=1/(1/v-1/f)');
+F('P',"Snell's law",'n₁ sin θ₁ = n₂ sin θ₂','n1:Index n₁|th1:Angle θ₁ (degrees)|n2:Index n₂|th2:Angle θ₂ (degrees)','th2=asind(n1*sind(th1)/n2);th1=asind(n2*sind(th2)/n1);n2=n1*sind(th1)/sind(th2);n1=n2*sind(th2)/sind(th1)');
+F('P','Ideal gas law (SI)','PV = nRT   (R = 8.314 J/mol·K)','P:Pressure P (Pa)|V:Volume V (m³)|n:Moles n (mol)|T:Temperature T (K)','P=n*Rg*T/V;V=n*Rg*T/P;n=P*V/(Rg*T);T=P*V/(n*Rg)');
+F('P','Heat energy','Q = m·c·ΔT','Q:Heat Q (J)|m:Mass m (kg)|c:Specific heat c (J/kg·K)|dT:Temp. change ΔT (K)','Q=m*c*dT;m=Q/(c*dT);c=Q/(m*dT);dT=Q/(m*c)');
+F('P','Centripetal force','F = m·v² / r','F:Force F (N)|m:Mass m (kg)|v:Speed v (m/s)|r:Radius r (m)','F=m*v*v/r;m=F*r/(v*v);v=sqrt(F*r/m);r=m*v*v/F');
+F('P','Simple pendulum','T = 2π √(L/g)','L:Length L (m)|T:Time period T (s)','T=2*PI*sqrt(L/g0);L=g0*T*T/(4*PI*PI)');
+F('P',"Hooke's law",'F = k·x','F:Force F (N)|ks:Spring constant k (N/m)|x:Extension x (m)','F=ks*x;ks=F/x;x=F/ks');
+F('P','Escape velocity','vₑ = √(2GM / R)','M:Planet mass M (kg)|r:Radius R (m)|v:Escape velocity (m/s)','v=sqrt(2*Gc*M/r)');
+F('P','Mass–energy equivalence','E = m·c²','E:Energy E (J)|m:Mass m (kg)','E=m*c0*c0;m=E/(c0*c0)');
+F('P','Photon energy','E = h·f','E:Energy E (J)|f:Frequency f (Hz)','E=hP*f;f=E/hP');
+F('P','de Broglie wavelength','λ = h / (m·v)','lam:Wavelength λ (m)|m:Mass m (kg)|v:Velocity v (m/s)','lam=hP/(m*v);v=hP/(m*lam);m=hP/(lam*v)');
+F('P','Capacitor charge','Q = C·V','Q:Charge Q (C)|C:Capacitance C (F)|V:Voltage V (V)','Q=C*V;C=Q/V;V=Q/C');
+F('P','Efficiency','η = (output / input) × 100','out:Output energy/power|inp:Input energy/power|eta:Efficiency η (%)','eta=out/inp*100;out=eta*inp/100;inp=out*100/eta');
+// ---------- CHEMISTRY ----------
+F('C','Moles from mass','n = m / M','n:Moles n (mol)|m:Mass m (g)|M:Molar mass M (g/mol)','n=m/M;m=n*M;M=m/n');
+F('C','Molarity','C = n / V','C:Molarity C (mol/L)|n:Moles n (mol)|V:Volume V (L)','C=n/V;n=C*V;V=n/C');
+F('C','Dilution','C₁V₁ = C₂V₂','C1:C₁ (mol/L)|V1:V₁ (L)|C2:C₂ (mol/L)|V2:V₂ (L)','C2=C1*V1/V2;V2=C1*V1/C2;C1=C2*V2/V1;V1=C2*V2/C1');
+F('C','pH from [H⁺]','pH = −log₁₀[H⁺]','H:[H⁺] (mol/L)|pH:pH','pH=-log10(H);H=pow(10,-pH)');
+F('C','pOH from [OH⁻]','pOH = −log₁₀[OH⁻]','OH:[OH⁻] (mol/L)|pOH:pOH','pOH=-log10(OH);OH=pow(10,-pOH)');
+F('C','pH + pOH = 14','pH + pOH = 14  (at 25 °C)','pH:pH|pOH:pOH','pH=14-pOH;pOH=14-pH');
+F('C','Ideal gas law (L·atm)','PV = nRT   (R = 0.0821 L·atm/mol·K)','P:Pressure P (atm)|V:Volume V (L)|n:Moles n (mol)|T:Temperature T (K)','P=n*Rl*T/V;V=n*Rl*T/P;n=P*V/(Rl*T);T=P*V/(n*Rl)');
+F('C',"Boyle's law",'P₁V₁ = P₂V₂','P1:P₁|V1:V₁|P2:P₂|V2:V₂','P2=P1*V1/V2;V2=P1*V1/P2;P1=P2*V2/V1;V1=P2*V2/P1');
+F('C',"Charles's law",'V₁/T₁ = V₂/T₂','V1:V₁|T1:T₁ (K)|V2:V₂|T2:T₂ (K)','V2=V1*T2/T1;T2=V2*T1/V1;V1=V2*T1/T2;T1=V1*T2/V2');
+F('C','Combined gas law','P₁V₁/T₁ = P₂V₂/T₂','P1:P₁|V1:V₁|T1:T₁ (K)|P2:P₂|V2:V₂|T2:T₂ (K)','V2=P1*V1*T2/(T1*P2);P2=P1*V1*T2/(T1*V2);T2=P2*V2*T1/(P1*V1)');
+F('C','Number of particles','N = n × Nₐ','N:Particles N|n:Moles n (mol)','N=n*NA;n=N/NA');
+F('C','Percent yield','% yield = (actual / theoretical) × 100','act:Actual yield|theo:Theoretical yield|y:Percent yield (%)','y=act/theo*100;act=y*theo/100;theo=act*100/y');
+F('C','Percent composition','% = (mass of element / mass of compound) × 100','me:Mass of element|mc:Mass of compound|p:Percent (%)','p=me/mc*100;me=p*mc/100;mc=me*100/p');
+F('C','First-order half-life','t½ = 0.693 / k','k:Rate constant k (1/s)|thalf:Half-life t½ (s)','thalf=0.693/k;k=0.693/thalf');
+F('C','First-order decay','[A] = [A]₀ e^(−kt)','A0:[A]₀|A:[A]|k:Rate constant k|t:Time t','A=A0*exp(-k*t);A0=A*exp(k*t);t=log(A0/A)/k;k=log(A0/A)/t');
+F('C','Gibbs free energy','ΔG = ΔH − TΔS','dG:ΔG (kJ/mol)|dH:ΔH (kJ/mol)|T:Temperature T (K)|dS:ΔS (kJ/mol·K)','dG=dH-T*dS;dH=dG+T*dS;T=(dH-dG)/dS;dS=(dH-dG)/T');
+F('C','Molality','b = n / kg solvent','b:Molality b (mol/kg)|n:Moles solute n (mol)|w:Solvent mass (kg)','b=n/w;n=b*w;w=n/b');
+F('C','Mole fraction','Xₐ = nₐ / (nₐ + n_b)','na:nₐ (mol)|nb:n_b (mol)|X:Mole fraction Xₐ','X=na/(na+nb);na=X*nb/(1-X);nb=na*(1-X)/X');
+F('C','Beer–Lambert law','A = ε·l·c','A:Absorbance A|eps:Molar absorptivity ε (L/mol·cm)|l:Path length l (cm)|c:Concentration c (mol/L)','A=eps*l*c;eps=A/(l*c);l=A/(eps*c);c=A/(eps*l)');
+F('C','Henderson–Hasselbalch','pH = pKa + log₁₀([A⁻]/[HA])','pH:pH|pKa:pKa|B:[A⁻] (mol/L)|HA:[HA] (mol/L)','pH=pKa+log10(B/HA);pKa=pH-log10(B/HA);B=HA*pow(10,pH-pKa);HA=B/pow(10,pH-pKa)');
+F('C','Freezing-point depression','ΔT = i·K_f·m','dT:ΔT (°C)|i:van’t Hoff factor i|Kf:K_f (°C·kg/mol)|b:Molality m (mol/kg)','dT=i*Kf*b;Kf=dT/(i*b);b=dT/(i*Kf);i=dT/(Kf*b)');
+F('C','Gas density','d = P·M / (R·T)','d:Density d (g/L)|P:Pressure P (atm)|M:Molar mass M (g/mol)|T:Temperature T (K)','d=P*M/(Rl*T);M=d*Rl*T/P;P=d*Rl*T/M;T=P*M/(Rl*d)');
+
+
+// ---------- TRIG VALUES ----------
+D.unshift({s:'M',n:'Trig values: sin cos tan cosec sec cot',eq:'sin θ · cos θ · tan θ · 1/sin θ · 1/cos θ · 1/tan θ',v:[],sol:[],special:true});
+const TS={0:'0',15:'(√3−1)/(2√2)',18:'(√5−1)/4',30:'1/2',36:'√(10−2√5)/4',45:'1/√2',54:'(√5+1)/4',60:'√3/2',72:'√(10+2√5)/4',75:'(√3+1)/(2√2)',90:'1'};
+const TT={0:'0',15:'2−√3',18:'√(25−10√5)/5',30:'1/√3',36:'√(5−2√5)',45:'1',54:'√(25+10√5)/5',60:'√3',72:'√(5+2√5)',75:'2+√3',90:'undefined'};
+const TC={0:'undefined',15:'√6+√2',18:'√5+1',30:'2',36:'4/√(10−2√5)',45:'√2',54:'√5−1',60:'2/√3',72:'4/√(10+2√5)',75:'√6−√2',90:'1'};
+function trigCompute(deg){
+  const n=((deg%360)+360)%360,q=n<90?1:n<180?2:n<270?3:4,ref=[n,180-n,n-180,360-n][q-1];
+  const rr=Math.round(ref),ok=Math.abs(ref-rr)<1e-9&&rr in TS,cl=x=>Math.abs(x)<1e-12?0:x;
+  const sv=cl(Math.sin(n*Math.PI/180)),cv=cl(Math.cos(n*Math.PI/180)),tv=cv===0?NaN:sv/cv;
+  const sg={s:q<3?1:-1,c:(q===1||q===4)?1:-1,t:(q===1||q===3)?1:-1};
+  const ex=(tb,k,sign)=>{if(!ok)return'—';const b=tb[k];return(b==='0'||b==='undefined'||sign>0)?b:'−'+b};
+  const inv=x=>x===0?NaN:1/x;
+  return{n,q,ref,ok,rows:[
+   ['sin θ',ex(TS,rr,sg.s),sv],['cos θ',ex(TS,90-rr,sg.c),cv],['tan θ',ex(TT,rr,sg.t),tv],
+   ['cosec θ  (1/sin θ)',ex(TC,rr,sg.s),inv(sv)],['sec θ  (1/cos θ)',ex(TC,90-rr,sg.c),inv(cv)],['cot θ  (1/tan θ)',ex(TT,90-rr,sg.t),tv===0?NaN:(cv===0?0:cv/sv)]]};
+}
+function drawTrig(){
+  const quick=[0,15,30,45,60,75,90,120,135,150,180,270,360];
+  $('main').innerHTML=`<div class="lbl">Maths</div><h2>Trig values</h2><div class="eq">sin θ · cos θ · tan θ · cosec θ · sec θ · cot θ</div>
+  <div class="lbl">Angle θ</div><div style="display:flex;gap:8px"><input id="ta" type="number" step="any" inputmode="decimal" value="${window.__ta??30}"><select id="tu" style="width:140px"><option value="d">degrees</option><option value="r">radians</option></select></div>
+  <div class="tabs" style="margin-top:10px">${quick.map(a=>`<button class="tab" style="flex:none;padding:6px 10px" data-a="${a}">${a}°</button>`).join('')}</div>
+  <div class="ans" id="tout"></div>
+  <div class="hint">Exact values shown for 0°, 15°, 18°, 30°, 36°, 45°, 54°, 60°, 72°, 75°, 90° and all angles with these as reference angle (any quadrant, negatives and angles above 360° too).</div>`;
+  const go=()=>{window.__ta=$('ta').value;trigShow()};
+  $('ta').oninput=go;$('tu').onchange=go;
+  $('main').querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{$('tu').value='d';$('ta').value=b.dataset.a;go()});
+  trigShow();
+}
+function trigShow(){
+  const v=parseFloat($('ta').value),o=$('tout');
+  if(isNaN(v)){o.innerHTML='<div class="hint">Enter an angle.</div>';return}
+  const deg=$('tu').value==='r'?v*180/Math.PI:v,r=trigCompute(deg),f=ENV.fmt;
+  o.innerHTML=`<div class="hint" style="margin:0 0 10px">θ = ${f(deg)}° → quadrant ${r.q}${r.ok||true?', reference angle '+f(r.ref)+'°':''}</div>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px"><tr style="text-align:left;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.06em"><th style="padding:6px 8px">Function</th><th style="padding:6px 8px">Exact</th><th style="padding:6px 8px">Decimal</th></tr>
+  ${r.rows.map(x=>`<tr style="border-top:1px solid var(--ln)"><td style="padding:9px 8px;font-weight:600">${x[0]}</td><td style="padding:9px 8px;white-space:nowrap">${x[1]}</td><td style="padding:9px 8px;color:var(--acc);font-weight:700">${isNaN(x[2])?'undefined':f(x[2])}</td></tr>`).join('')}</table></div>`;
+}
+
+
+// ---------- SPECTRAL LINES (Rydberg) ----------
+D.splice(1,0,{s:'P',n:'Spectral lines (Rydberg formula)',eq:'1/λ = R·Z²·(1/n₁² − 1/n₂²)',v:[],sol:[],special:'spec'});
+const RYD=1.0973731568e7,CL=2.99792458e8,EV=1.602176634e-19,H_=6.62607015e-34;
+const SERIES={1:['Lyman','L'],2:['Balmer','H'],3:['Paschen','P'],4:['Brackett','Br'],5:['Pfund','Pf'],6:['Humphreys','Hu']};
+const GR=['α','β','γ','δ','ε'];
+function wl2rgb(w){let r=0,g=0,b=0;if(w<440){r=(440-w)/60;b=1}else if(w<490){g=(w-440)/50;b=1}else if(w<510){g=1;b=(510-w)/20}else if(w<580){r=(w-510)/70;g=1}else if(w<645){r=1;g=(645-w)/65}else r=1;
+ const f=w<420?.3+.7*(w-380)/40:w>700?.3+.7*(750-w)/50:1;return'rgb('+[r,g,b].map(x=>Math.round(255*Math.pow(x*f,.8))).join(',')+')'}
+function specCompute(Z,n1,n2){
+  const k=RYD*Z*Z*(1/(n1*n1)-(isFinite(n2)?1/(n2*n2):0)),nm=1e9/k,eV=1239.841984/nm;
+  return{k,nm,eV,J:eV*EV,f:CL*k,region:nm<10?'X-ray':nm<380?'Ultraviolet':nm<=750?'Visible':'Infrared'};
+}
+function drawSpec(){
+  const st=window.__sp||(window.__sp={Z:1,n1:2,n2:3});
+  const quick=[['Lα',1,2],['Hα',2,3],['Hβ',2,4],['Hγ',2,5],['Hδ',2,6],['Pα',3,4],['Brα',4,5],['Pfα',5,6]];
+  $('main').innerHTML=`<div class="lbl">Physics • Atomic</div><h2>Spectral lines</h2><div class="eq">1/λ = R·Z²·(1/n₁² − 1/n₂²)</div>
+  <div class="fields"><div><div class="lbl">Atomic number Z (H = 1)</div><input id="sz" type="number" min="1" step="1" value="${st.Z}"></div>
+  <div><div class="lbl">Lower level n₁</div><input id="s1" type="number" min="1" step="1" value="${st.n1}"></div>
+  <div><div class="lbl">Upper level n₂ (n₂ &gt; n₁)</div><input id="s2" type="number" min="2" step="1" value="${st.n2}"></div></div>
+  <div class="tabs">${quick.map(q=>`<button class="tab" style="flex:none;padding:6px 10px" data-q="${q[1]},${q[2]}">${q[0]} (${q[2]}→${q[1]})</button>`).join('')}</div>
+  <div class="ans" id="sout"></div>
+  <div class="hint">R = 1.0973731568×10⁷ m⁻¹ (Rydberg constant). Valid for hydrogen and hydrogen-like ions (He⁺ Z=2, Li²⁺ Z=3 …). Transition is n₂ → n₁ (emission).</div>`;
+  const go=()=>{st.Z=$('sz').value;st.n1=$('s1').value;st.n2=$('s2').value;specShow()};
+  ['sz','s1','s2'].forEach(i=>$(i).oninput=go);
+  $('main').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const[a,c]=b.dataset.q.split(',');$('sz').value=1;$('s1').value=a;$('s2').value=c;go()});
+  specShow();
+}
+function specShow(){
+  const Z=+$('sz').value,n1=+$('s1').value,n2=+$('s2').value,o=$('sout'),f=ENV.fmt;
+  if(!(Z>0)||!Number.isInteger(n1)||!Number.isInteger(n2)||n1<1){o.innerHTML='<div class="hint">Enter Z &gt; 0 and whole-number levels n₁ ≥ 1, n₂ &gt; n₁.</div>';return}
+  if(n2<=n1){o.innerHTML='<div class="warn">n₂ must be greater than n₁ for emission.</div>';return}
+  const r=specCompute(Z,n1,n2),se=SERIES[n1],d=n2-n1;
+  const name=se?`${se[0]} series${d<=5?' – '+se[0]+'-'+GR[d-1]+' ('+se[1]+GR[d-1]+')':''}`:`Transition ${n2}→${n1}`;
+  const sw=r.region==='Visible'?`<span style="display:inline-block;width:46px;height:18px;border-radius:6px;background:${wl2rgb(r.nm)};vertical-align:middle;border:1px solid var(--ln)"></span>`:'';
+  const rows=[];for(let m=n1+1;m<=n1+7;m++){const x=specCompute(Z,n1,m);rows.push([m,x])}
+  const lim=specCompute(Z,n1,Infinity);
+  const tr=(a,x,hl)=>`<tr style="border-top:1px solid var(--ln)${hl?';background:var(--sel)':''}"><td style="padding:7px 8px">${a}</td><td style="padding:7px 8px;white-space:nowrap">${f(x.nm)} nm</td><td style="padding:7px 8px">${f(x.eV)} eV</td><td style="padding:7px 8px">${x.region}</td></tr>`;
+  o.innerHTML=`<div class="step"><b>1. Given</b>\nZ = ${Z},  n₁ = ${n1},  n₂ = ${n2}</div>
+  <div class="step"><b>2. Substitute</b>\n1/λ = ${f(RYD)} × ${Z}² × (1/${n1}² − 1/${n2}²)\n1/λ = ${f(r.k)} m⁻¹</div>
+  <div class="lbl" style="margin-top:12px">${name}</div>
+  <div class="big">λ = ${f(r.nm)} nm  ${sw}</div>
+  <div class="step" style="margin-top:10px">Region      : ${r.region}\nWavelength  : ${f(r.nm*1e-9)} m  (${f(r.nm*10)} Å)\nWavenumber  : ${f(r.k)} m⁻¹  (${f(r.k/100)} cm⁻¹)\nFrequency   : ${f(r.f)} Hz\nPhoton energy: ${f(r.eV)} eV  =  ${f(r.J)} J</div>
+  <div class="lbl" style="margin-top:14px">All lines of the n₁ = ${n1} series${se?' ('+se[0]+')':''}</div>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="text-align:left;color:var(--mut);font-size:12px;text-transform:uppercase"><th style="padding:6px 8px">n₂ → ${n1}</th><th style="padding:6px 8px">λ</th><th style="padding:6px 8px">Energy</th><th style="padding:6px 8px">Region</th></tr>
+  ${rows.map(([m,x])=>tr(m+' → '+n1,x,m===n2)).join('')}${tr('∞ → '+n1+' (series limit)',lim,false)}</table></div>`;
+}
+
+// ---------- ENGINE ----------
+const rad=Math.PI/180;
+const ENV={PI:Math.PI,sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,sqrt:Math.sqrt,cbrt:Math.cbrt,pow:Math.pow,log:Math.log,log10:Math.log10,exp:Math.exp,abs:Math.abs,
+sind:x=>Math.sin(x*rad),cosd:x=>Math.cos(x*rad),tand:x=>Math.tan(x*rad),asind:x=>Math.asin(x)/rad,acosd:x=>Math.acos(x)/rad,atand:x=>Math.atan(x)/rad,
+fact:n=>{if(n<0||n%1)return NaN;let r=1;for(let i=2;i<=n;i++)r*=i;return r},
+fmt:x=>{if(typeof x!=='number')return String(x);if(x===0)return'0';const a=Math.abs(x);return(a>=1e7||a<1e-3)?x.toExponential(4).replace(/\.?0+e/,'e'):String(parseFloat(x.toPrecision(7)))},
+quad:(a,b,c)=>{const D=b*b-4*a*c;return a==0?'Not quadratic (a = 0)':D<0?'No real roots (D = '+ENV.fmt(D)+');  x = '+ENV.fmt(-b/(2*a))+' ± '+ENV.fmt(Math.sqrt(-D)/(2*a))+'i':'x₁ = '+ENV.fmt((-b+Math.sqrt(D))/(2*a))+',   x₂ = '+ENV.fmt((-b-Math.sqrt(D))/(2*a))},
+g0:9.81,Gc:6.674e-11,kc:8.99e9,c0:3e8,Rg:8.314,Rl:0.0821,hP:6.626e-34,NA:6.022e23};
+function ev(src,sc){const t=src.match(/\d+\.?\d*|[A-Za-z_]\w*|\*\*|[-+*\/(),]/g);let p=0;
+const E=()=>{let v=T();while(t[p]=='+'||t[p]=='-'){const o=t[p++],r=T();v=o=='+'?v+r:v-r}return v};
+const T=()=>{let v=U();while(t[p]=='*'||t[p]=='/'){const o=t[p++],r=U();v=o=='*'?v*r:v/r}return v};
+const U=()=>{if(t[p]=='-'){p++;return -U()}return W()};
+const W=()=>{const b=A();if(t[p]=='**'){p++;return Math.pow(b,U())}return b};
+const A=()=>{const x=t[p++];if(x=='('){const v=E();p++;return v}
+if(/^\d/.test(x))return +x;
+if(t[p]=='('){p++;const a=[];if(t[p]!=')'){a.push(E());while(t[p]==','){p++;a.push(E())}}p++;return sc[x](...a)}
+if(!(x in sc))throw new Error(x);return sc[x]};
+return E()}
+const $=id=>document.getElementById(id);
+let tab='All',cur=0,tgt=0;const store={};
+const tabs=[['All','All'],['M','Maths'],['P','Physics'],['C','Chemistry']];
+$('tabs').innerHTML=tabs.map(t=>`<button class="tab" data-t="${t[0]}">${t[1]}</button>`).join('');
+$('tabs').onclick=e=>{const t=e.target.dataset.t;if(t){tab=t;drawList()}};
+$('q').oninput=drawList;
+function drawList(){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const q=$('q').value.toLowerCase();
+  $('list').innerHTML=D.map((f,i)=>({f,i})).filter(o=>(tab==='All'||o.f.s===tab)&&(o.f.n+o.f.eq).toLowerCase().includes(q))
+   .map(o=>`<button class="it${o.i===cur?' on':''}" data-i="${o.i}"><span class="dot ${o.f.s}"></span>${o.f.n}</button>`).join('')||'<div class="hint">No formula found.</div>';
+}
+$('list').onclick=e=>{const b=e.target.closest('.it');if(b){cur=+b.dataset.i;tgt=0;drawList();drawMain()}};
+const lab=(f,k)=>{const v=f.v.find(v=>v.k===k);return v?v.l:'Roots '+k};
+const unit=l=>{const m=l.match(/\(([^)]+)\)\s*$/);return m?m[1]:''};
+const needs=(f,s)=>f.v.filter(v=>v.k!==s.k&&new RegExp('\\b'+v.k+'\\b').test(s.e));
+function drawMain(){if(D[cur].special)return D[cur].special==='spec'?drawSpec():drawTrig();
+  const f=D[cur],s=f.sol[tgt],vals=store[cur+'-'+tgt]||(store[cur+'-'+tgt]={});
+  $('main').innerHTML=`<div class="lbl">${{M:'Maths',P:'Physics',C:'Chemistry'}[f.s]}</div><h2 style="margin:0">${f.n}</h2>
+  <div class="eq">${f.eq}</div>
+  <div class="lbl">Find</div>
+  <select id="tg">${f.sol.map((x,i)=>`<option value="${i}"${i===tgt?' selected':''}>${lab(f,x.k).replace(/\s*\([^)]*\)\s*$/,'')}</option>`).join('')}</select>
+  <div class="fields">${needs(f,s).map(v=>`<div><div class="lbl">${v.l}</div><input type="number" step="any" inputmode="decimal" data-k="${v.k}" value="${vals[v.k]??''}" placeholder="Enter value"></div>`).join('')}</div>
+  <div class="ans" id="ans"></div>
+  <div class="hint">Constants used: g = 9.81 m/s², G = 6.674×10⁻¹¹, k = 8.99×10⁹, c = 3×10⁸ m/s, h = 6.626×10⁻³⁴, N<sub>A</sub> = 6.022×10²³. Angles in degrees.</div>`;
+  $('tg').onchange=e=>{tgt=+e.target.value;drawMain()};
+  $('main').querySelectorAll('input').forEach(i=>i.oninput=()=>{vals[i.dataset.k]=i.value;calc()});
+  calc();
+}
+function calc(){
+  const f=D[cur],s=f.sol[tgt],vals=store[cur+'-'+tgt],nd=needs(f,s),box=$('ans');
+  const miss=nd.filter(v=>vals[v.k]===undefined||vals[v.k]===''||isNaN(+vals[v.k]));
+  if(miss.length){box.innerHTML=`<div class="hint">Enter: ${miss.map(v=>v.l).join(', ')}</div>`;return}
+  let r;
+  try{const sc=Object.assign({},ENV);nd.forEach(v=>sc[v.k]=+vals[v.k]);r=ev(s.e,sc)}catch(e){r=NaN}
+  const L=lab(f,s.k),u=unit(L);
+  if(typeof r==='number'&&!isFinite(r)){box.innerHTML='<div class="warn">No valid real solution – check your inputs (division by zero, root/log of a negative, or total internal reflection).</div>';return}
+  const given=nd.map(v=>`${v.k} = ${ENV.fmt(+vals[v.k])}${unit(v.l)?' '+unit(v.l):''}`).join(',  ');
+  let sub='';
+  if(typeof r==='number'){let ex=s.e;nd.slice().sort((a,b)=>b.k.length-a.k.length).forEach(v=>{const n=+vals[v.k];ex=ex.replace(new RegExp('\\b'+v.k+'\\b','g'),n<0?`(${n})`:n)});
+    ex=ex.replace(/\*\*/g,'^').replace(/\*/g,'×');sub=`<div class="step"><b>3. Substitute</b>\n${s.k} = ${ex}</div>`}
+  box.innerHTML=`<div class="step"><b>1. Given</b>\n${given}</div><div class="step"><b>2. Formula</b>\n${f.eq}\nFind: ${L.replace(/\s*\([^)]*\)\s*$/,'')}</div>${sub}
+  <div class="lbl" style="margin-top:12px">Answer</div><div class="big">${typeof r==='number'?s.k+' = '+ENV.fmt(r)+(u?' '+u:''):r}</div>`;
+}
+drawList();drawMain();
+</script></body></html>
